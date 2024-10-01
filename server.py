@@ -2,6 +2,8 @@ import socket
 import logging
 from key_manager import KeyManager
 from file_handler import FileHandler
+from encryption import Encryption
+import os
 
 # Configure logging
 logging.basicConfig(
@@ -11,52 +13,61 @@ logging.basicConfig(
 )
 
 def start_server():
-    # Import Encryption here to avoid circular dependency issues
-    from encryption import Encryption
-    
-    # Initialize KeyManager and Encryption classes with AES algorithm (change to 'fernet' for Fernet)
     key_manager = KeyManager()
-    encryption = Encryption(key_manager.key, algorithm='aes')  # Change to 'fernet' for Fernet
 
-    # Setup socket connection
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket.bind(('localhost', 12345))  # Bind to localhost on port 12345
-    server_socket.listen(1)  # Listen for incoming connections
+    server_socket.bind(('localhost', 12345))
+    server_socket.listen(1)
 
     logging.info("Waiting for connection...")
     
-    conn, addr = server_socket.accept()  # Accept a connection
+    conn, addr = server_socket.accept()
     logging.info(f"Connection established with {addr}")
 
     while True:
         try:
-            # Receive data
-            encrypted_data = conn.recv(1024)  # Receive up to 1024 bytes of encrypted data
-
+            encrypted_data = conn.recv(1024)
             if not encrypted_data:
                 logging.info("No data received; closing connection.")
                 break
 
-            # Decrypt received data
-            decrypted_data = encryption.decrypt_data(encrypted_data)
+            # Ask for the key in hex format
+            entered_key = input("Enter the encryption key to decrypt the file (in hex format): ")
+            try:
+                unique_key = bytes.fromhex(entered_key)  # Convert hex string to bytes
+                logging.info(f"Unique Encryption Key entered by user: {unique_key.hex()}")  # Log the received key
 
-            # Save the decrypted data to a file (consider naming convention based on timestamp or sender)
-            FileHandler.write_file("received_file.json", decrypted_data)
+                # Create a new Encryption instance with the entered unique key
+                encryption = Encryption(unique_key, algorithm='aes')
 
-            logging.info("File received and decrypted successfully.")
+                # Decrypt the received data using the unique key
+                decrypted_data = encryption.decrypt_data(encrypted_data)
 
-            # Encrypt response and send back acknowledgment
-            response = "Acknowledged".encode()  
-            encrypted_response = encryption.encrypt_data(response)
-            conn.sendall(encrypted_response)
+                # Write the decrypted data to a file
+                FileHandler.write_file("received_file.json", decrypted_data)
 
+                logging.info("File received and decrypted successfully.")
+
+                # Display the content of the received and decrypted file
+                file_content = FileHandler.read_file("received_file.json")
+                print("Decrypted file content:")
+                print(file_content.decode('utf-8'))  # Assuming JSON content is UTF-8 encoded
+
+                # Send an acknowledgment response back to the client
+                response = "Acknowledged".encode()  
+                encrypted_response = encryption.encrypt_data(response)
+                conn.sendall(encrypted_response)
+
+            except ValueError:
+                print("Invalid key! Data transmission aborted.")
+                logging.error("Invalid key entered; data transmission aborted.")
+        
         except Exception as e:
             logging.error(f"Error: {e}")
             break
 
-    conn.close()  # Close the connection when done
+    conn.close()
     logging.info("Connection closed.")
 
 if __name__ == "__main__":
-    start_server()  # Start the server when the script is run
-
+    start_server()
