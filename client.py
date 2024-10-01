@@ -2,11 +2,6 @@ import socket
 import os
 from cryptography.fernet import Fernet
 
-def generate_key():
-    key = Fernet.generate_key()
-    with open("Secret.key", "wb") as key_file:
-        key_file.write(key)
-
 def load_key():
     return open("Secret.key", "rb").read()
 
@@ -32,20 +27,19 @@ def send_file(client_socket, filename, key):
         print(f"File '{filename}' not found.")
 
 def main():
-    if not os.path.exists("Secret.key"):
-        generate_key()  # Generate key if it doesn't exist
-    
     key = load_key()  # Load the key
     
     # Setup socket connection to server
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_socket.connect(('localhost', 12345))
     
-    filename = input("Enter the full path of the file to send (including extension): ")
-    send_file(client_socket, filename, key)
+    while True:
+        filename = input("Enter the full path of the file to send (or type 'exit' to quit): ")
+        if filename.lower() == 'exit':
+            break
+        send_file(client_socket, filename, key)
 
     client_socket.close()
 
 if __name__ == "__main__":
     main()
-
