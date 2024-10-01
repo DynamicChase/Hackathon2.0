@@ -1,0 +1,10 @@
+2024-10-01 16:32:42,556 - INFO - Waiting for connection...
+2024-10-01 16:32:45,535 - INFO - Connection established with ('127.0.0.1', 57308)
+2024-10-01 16:33:10,525 - ERROR - Error: Invalid key size (352) for AES.
+2024-10-01 16:33:10,526 - INFO - Connection closed.
+2024-10-01 18:00:09,954 - INFO - Waiting for connection...
+2024-10-01 18:00:13,852 - INFO - Connection established with ('127.0.0.1', 46134)
+2024-10-01 18:00:41,512 - INFO - File received and decrypted successfully.
+2024-10-01 18:02:04,166 - INFO - File received and decrypted successfully.
+2024-10-01 18:02:13,648 - ERROR - Error: Invalid padding bytes.
+2024-10-01 18:02:13,648 - INFO - Connection closed.

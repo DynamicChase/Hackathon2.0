@@ -1,0 +1,9 @@
+2024-10-01 16:32:45,535 - INFO - Connected to server.
+2024-10-01 16:33:10,525 - INFO - Sent /home/sm/Desktop/hello.json successfully.
+2024-10-01 16:33:10,526 - ERROR - Error sending file '/home/sm/Desktop/hello.json': Invalid IV size (0) for CBC.
+2024-10-01 16:33:53,674 - INFO - Connection closed.
+2024-10-01 18:00:13,852 - INFO - Connected to server.
+2024-10-01 18:00:41,478 - INFO - Sent /home/sm/Desktop/token.txt successfully.
+2024-10-01 18:02:04,165 - INFO - Sent /home/sm/Desktop/hello.json successfully.
+2024-10-01 18:02:13,647 - INFO - Sent /home/sm/Desktop/combine.py successfully.
+2024-10-01 18:02:13,648 - ERROR - Error sending file '/home/sm/Desktop/combine.py': [Errno 104] Connection reset by peer
