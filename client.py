@@ -2,6 +2,8 @@ import socket
 import logging
 from key_manager import KeyManager
 from file_handler import FileHandler
+from encryption import Encryption
+import os
 
 # Configure logging
 logging.basicConfig(
@@ -10,22 +12,27 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 
-def send_file(client_socket, filename, encryption):
-    """Send an encrypted file to the server."""
+def send_file(client_socket, filename):
     try:
-        file_data = FileHandler.read_file(filename)  # Read file as bytes
+        # Generate a unique encryption key for this transfer
+        unique_key = os.urandom(32)  # Generate a new 32-byte key
+        logging.info(f"Unique Encryption Key for this transfer: {unique_key.hex()}")  # Log the unique key
         
-        # Encrypt the file data; ensure it's in bytes format.
+        # Print the unique key to the console
+        print(f"Unique Encryption Key for this transfer: {unique_key.hex()}")  # Display the unique key
+
+        # Create a new Encryption instance with the unique key
+        encryption = Encryption(unique_key, algorithm='aes')
+
+        file_data = FileHandler.read_file(filename)  
         encrypted_file_data = encryption.encrypt_data(file_data)  
         
-        # Send encrypted file data to server
+        # Send both the encrypted data and the unique key to the server
         client_socket.sendall(encrypted_file_data)
         
         logging.info(f"Sent {filename} successfully.")
 
-        # Receive acknowledgment from server
         encrypted_response = client_socket.recv(1024)
-        
         decrypted_response = encryption.decrypt_data(encrypted_response)
         
         print("Server Response:", decrypted_response.decode())
@@ -35,38 +42,30 @@ def send_file(client_socket, filename, encryption):
         print(e)
 
 def main():
-    # Initialize KeyManager and Encryption classes with AES algorithm (change to 'fernet' for Fernet)
-    key_manager = KeyManager()
-    
-    # Import Encryption here to avoid circular dependency issues 
-    from encryption import Encryption
-    
-    encryption = Encryption(key_manager.key, algorithm='aes')  # Change to 'fernet' for Fernet
-
-    # Setup socket connection to server
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     try:
         client_socket.connect(('localhost', 12345))
-        
         logging.info("Connected to server.")
 
         while True:
-            filename = input("Enter the full path of the file to send (or type 'exit' to quit): ")
+            command = input("Enter command (send/exit): ").strip().lower()
             
-            if filename.lower() == 'exit':
+            if command == 'exit':
                 break
             
-            send_file(client_socket, filename, encryption)
+            elif command == 'send':
+                filename = input("Enter the full path of the file to send: ")
+                send_file(client_socket, filename)
+            else:
+                print("Invalid command. Please enter 'send' or 'exit'.")
     
     except Exception as e:
         logging.error(f"Connection error: {e}")
     
     finally:
         client_socket.close()
-        
         logging.info("Connection closed.")
 
 if __name__ == "__main__":
     main()
-
