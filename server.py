@@ -31,7 +31,7 @@ def start_server():
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.bind(('localhost', 12345))  # Bind to localhost on port 12345
     server_socket.listen(1)  # Listen for incoming connections
-    
+    print('Server Started')
     logging.info("Waiting for connection...")
     conn, addr = server_socket.accept()  # Accept a connection
     logging.info(f"Connection established with {addr}")
@@ -46,6 +46,9 @@ def start_server():
             
             # Decrypt received data
             decrypted_data = switch_set.decrypt_data(encrypted_data)
+
+            # Log the content of the decrypted data (assuming it's in JSON format)
+            logging.info(f"Received file content: {decrypted_data.decode()}")  # Log decrypted content
             
             # Save the decrypted data to a file
             with open("received_file.json", "wb") as f:
