@@ -1,5 +1,13 @@
 import socket
+import logging
 from cryptography.fernet import Fernet, InvalidToken
+
+# Configure logging
+logging.basicConfig(
+    filename='server.log',  # Log file name
+    level=logging.INFO,      # Set the logging level
+    format='%(asctime)s - %(levelname)s - %(message)s'  # Log format
+)
 
 class UniversalSwitchSet:
     def __init__(self):
@@ -24,15 +32,16 @@ def start_server():
     server_socket.bind(('localhost', 12345))  # Bind to localhost on port 12345
     server_socket.listen(1)  # Listen for incoming connections
     
-    print("Waiting for connection...")
+    logging.info("Waiting for connection...")
     conn, addr = server_socket.accept()  # Accept a connection
-    print(f"Connection established with {addr}")
+    logging.info(f"Connection established with {addr}")
     
     while True:
         try:
             # Receive data
             encrypted_data = conn.recv(1024)  # Receive up to 1024 bytes of encrypted data
             if not encrypted_data:
+                logging.info("No data received; closing connection.")
                 break
             
             # Decrypt received data
@@ -42,7 +51,7 @@ def start_server():
             with open("received_file.json", "wb") as f:
                 f.write(decrypted_data)
             
-            print("File received and decrypted successfully.")
+            logging.info("File received and decrypted successfully.")
             
             # Encrypt response
             response = "Acknowledged".encode()
@@ -52,14 +61,14 @@ def start_server():
             conn.sendall(encrypted_response)
 
         except InvalidToken:
-            print("Invalid token! The received data may be corrupted or use a different key.")
+            logging.error("Invalid token! The received data may be corrupted or use a different key.")
             break
         except Exception as e:
-            print(f"Error: {e}")
+            logging.error(f"Error: {e}")
             break
 
     conn.close()  # Close the connection when done
+    logging.info("Connection closed.")
 
 if __name__ == "__main__":
     start_server()  # Start the server when the script is run
-
